@@ -1,143 +1,142 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-// list_node has value and next pointer
-typedef struct list_node {
-    int value;
-    struct list_node* next;
-} list_node;
 
-// list has a list_node type pointer call head
-typedef struct list {
-    list_node* head;
-} list;
+#define TABLE_SIZE 100000
 
-// dict_entry has int type value called type, char type pointer called key, void type pointer called value, a dict_entry type pointer called next
-typedef struct dict_entry {
-    int key;
-    int * value;
-    struct dict_entry* next;
-} dict_entry;
+typedef struct {
+    int left;
+    int right;
+    //char name[MAX_NAME]; // array of char, one name can have multiple character, therefore need an array to store
+    int name;
+    int  value[];
+    //int *valuepointer = value;
+}vertex;
 
-// dict_t has dict_entry type pointer called head
-typedef struct dict_t {
-    dict_entry* head;
-} dict_t;
-
-// return a dict_t type pointer d, d's dict_entry type head is pointing to NULL. 
-dict_t* dictAlloc(void) {
-    dict_t* d = malloc(sizeof(dict_t)); // just declared a pointer size and that is what is does?  
-    d->head = NULL; // why point to NULL? 
-    return d; 
+vertex *init_array(int node, int m){
+    vertex *st = (vertex *)malloc(sizeof(vertex)+m*sizeof(int));
+    st->left = 0;
+    st->right = m-1;
+    st->name = node;
+    return st;
 }
 
-dict_entry* addItem(dict_t* dict, dict_entry* prev, int key, int value, int length) {
-    int new[length];
-    dict_entry* de = malloc(sizeof(*de));
-
-    if(prev == 0){
-    dict_entry* de = malloc(sizeof(*de));
-
-    de->key = key;
-    }else{
-        //printf("%d \n", prev);
-        //dict_entry * de;
-        de = prev;
-        //dict_entry * de = prev;
+vertex *resize_array(vertex *st, int m){
+    if (m<=st->right + 1){
+         return st; /* Take sure do not kill old values */
     }
-    int a;
-    if (length == 1){
+    st = (vertex *)realloc(st, sizeof(vertex)+m*sizeof(int));
+    st->right = m-1;
 
-        new[0] = value;
-        de->value = new;
-        printf("first ");
-        //printf("%d ", de);
+    return st;
+}
 
-        //printf("%d \n", *(de->value));
+vertex * hash_table[TABLE_SIZE];
 
-    }else{
-        printf("second ");
-        //printf("%d ", de);
 
-        //printf("%d \n",*(de->value));
-    for(a = 0; a < length-1; a++){
-        //new[a] = *(de->value+a);
-        //printf("enter\n");
-        //printf("%d %d \n",a, *(de->value+a));
+int array_size(int *array){
+    size_t t = sizeof(&array);
+    return t;
+}
 
+//input node is a number, the simplest hashing will be returning itself.
+unsigned int hash(int node){
+    unsigned int hash_value = 0;
+    hash_value += node;
+    hash_value %= TABLE_SIZE; // need to do mod operation in case hash number is larger than table size
+    return hash_value;
+}
+
+void init_hash_table(){
+
+    for(int i=0; i < TABLE_SIZE; i++){
+
+        hash_table[i] = NULL;
     }
-        new[length-1] = value;
-        de->value = new;
+}
 
-    for(a = 0; a < length-1; a++){
-        printf("check\n");
-        printf("%d %d \n",a, *(de->value+a));
+void print_table(){
 
+    for (int i = 0; i < TABLE_SIZE; i ++){
+
+        if (hash_table[i] == NULL){
+
+            printf("\t%i\t --- \n ", i);
+        }else {
+            printf("\t%i\t%d",i, hash_table[i]->name);
+            printf("\n");
+        }
     }
+}
+
+bool hash_table_insert(vertex *p){
+    if(p == NULL) return false;
+    int index = hash(p->name);
+    if (hash_table[index] != NULL){
+
+        return true;
     }
-    //new[length-1] = value;
-    
-    
-    de->next = dict->head;
-    dict->head = de;
-    return de;
+    //init_array(p, 3);
+    printf("test p right value %d \n", p->right);
+    hash_table[index] = p;
+    //int * poi = hash_table[index]->value;
+    //poi = (int *) malloc(sizeof(int));
+    return true;
+
+}
+
+bool hash_value_insert(vertex *p, int n){
+    printf("p right is %d \n", p->right);
+    p->value[p->right] = n;
+
+    for(int i = 0; i<p->right+1; i++){
+
+        printf("value is %d \n", p->value[i]);
+    }
+    return true;
+
 }
 
 
+int main() {
 
-int main(int argc, char** argv){
-    printf("Hello, World\n");
-    dict_t* d = dictAlloc();
-    dict_entry* de;
+    init_hash_table();
+    print_table();
+    
+    FILE * fp = fopen ("./cora_adj.txt", "r");
+    int num1, num2, c;
 
-    list* l = malloc(sizeof(*l));
-    list_node* n = malloc(sizeof(*n));
-    int data[100]; 
-    int key;
-    static  dict_entry *pointers[100000] = {0};
-    //n->value = "value";
-    n->value = 22222;
-    l->head = n;
-    pointers[11] = addItem(d, pointers[11], 11, 22, 1);
-    printf("%d \n", pointers[11]);
-    pointers[11] = addItem(d, pointers[11], 11, 33, 2);
-        
-        
-    pointers[3] = addItem(d, pointers[3], 3, 6, 2);
-
-    FILE * fp;
-    fp = fopen ("./cora_adj.txt", "r");
-    int c;
-    int num1;
-    int num2;
-    printf("pointers ");
-    printf("%d", pointers[100]);
-    int b;
     while(1) {
       c = fgetc(fp);
       if( feof(fp) ) {
          break;
       }
 
-
-    if (b < 5){
-        fscanf(fp, "%d %d", &num2, &num1);
+    fscanf(fp, "%d %d", &num2, &num1);
+    //if (num1 <= 10) {
         printf("%d %d \n", num1, num2);
-        printf("%d \n", num1+num2);
-        int a;
-        int b;
-        a = num1;
-        b = num2;
-        pointers[a] = addItem(d, pointers[a], a, b, 5);
-        //pointers[3] = addItem(d, pointers[3], 3, 5, 2);
 
-    }   
-    b++;   
+    int index = hash(num1);
+    if (hash_table[index] == NULL) {
+        hash_table[index] = init_array(index, 1);
+    }else{
 
+        int right = hash_table[index]->right;
+        hash_table[index] = resize_array(hash_table[index],right+2);
+    }
+
+    hash_value_insert(hash_table[index], num2); 
+    
+    //}
    }
-    fclose(fp);
+
+    print_table();
+
 
     return 0;
+
 
 }
