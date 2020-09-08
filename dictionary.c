@@ -7,7 +7,8 @@
 //#include <dictionary.h>
 
 #define TABLE_SIZE 100000
-#define NODE_NUM 2708 // if not knowing the total number of node, can set it to be same as TABLE_SIZE 
+// cora_adj.txt has 2708 nodes; For other graphs, it can set it to be same as TABLE_SIZE if number of nodes is not known
+#define NODE_NUM 2708 
 typedef struct {
     int left;
     int right;
@@ -25,6 +26,7 @@ vertex *init_array(int node, int m){
     return st;
 }
 
+// when adding element to vertex->value[], memory needs to be resized
 vertex *resize_array(vertex *st, int m){
     if (m<=st->right + 1){
          return st; /* Take sure do not kill old values */
@@ -75,6 +77,7 @@ void print_table(){
     }
 }
 
+// currently is not used yet. Will need to shorten the code in main() and put code in here and make it more modularized
 bool hash_table_insert(vertex *p){
     if(p == NULL) return false;
     int index = hash(p->key);
@@ -90,7 +93,7 @@ bool hash_table_insert(vertex *p){
     return true;
 }
 
-// currently is not used yet. Will need to shorten the code in main() and put code in here and make it more modularized
+// add node to the end of the list vertex->value[] 
 bool hash_value_insert(vertex *p, int n){
     //printf("p and right is %d %d \n", p->key, p->right);
     p->value[p->right] = n;
@@ -107,7 +110,7 @@ int random_walk( vertex * table[], int start, int counter[]){
     int currnode = hash(start);
 
     int walk = 0;
-    int total_walk = 100000; // this can be larger if graph is bigger
+    int total_walk = 100000; // total number of walks, this can be larger if graph is bigger
     
     while(walk <= total_walk){
         counter[currnode] += 1;
@@ -138,15 +141,19 @@ int sort_array(int * data, int max_size){
     int size = max_size;
     int index[size];//use malloc to large size array
     //int i;
-
+    FILE * fptr = fopen("sorted_nodes.txt", "w");
     for(int i=0;i<size;i++){
         index[i] = i;
     }
     array = data;
     qsort(index, size, sizeof(*index), cmp);
-    printf("\n\ncount_number\tnode\n");
+    //printf("\n\ncount_number\tnode\n"); // it is for printing out in terminal when debugging
+    fprintf(fptr, "%s\t%s\n", "count_number", "node");
+
     for(int i=0;i<size;i++){
-        printf("%d\t\t\t%d\n", data[index[i]], index[i]);
+        //printf("%d\t\t\t%d\n", data[index[i]], index[i]);
+        fprintf(fptr, "%d\t\t%d\n", data[index[i]], index[i]);
+
     }
     return 0;
 }
