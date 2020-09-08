@@ -152,8 +152,9 @@ int sort_array(int * data, int max_size){
 
     for(int i=0;i<size;i++){
         //printf("%d\t\t\t%d\n", data[index[i]], index[i]);
+        if(index[i]>=1){ // remove node 0; node 0 doesn't exist, node starts from 1
         fprintf(fptr, "%d\t\t%d\n", data[index[i]], index[i]);
-
+        }
     }
     return 0;
 }
@@ -166,15 +167,16 @@ int main() {
     int num1, num2, c;
 
     while(1) {
-      c = fgetc(fp);
-      if( feof(fp) ) {
-         break;
-      }
+      //c = fgetc(fp);
 
-    fscanf(fp, "%d %d", &num2, &num1);
+
+    fscanf(fp, "%d %d", &num1, &num2);
     //if (num1 <= 10) {
     //printf("%d %d \n", num1, num2);
-
+    if( feof(fp) ) {
+         break;
+      }
+    
     int index = hash(num1);
     if (hash_table[index] == NULL) {
         hash_table[index] = init_array(index, 1);
