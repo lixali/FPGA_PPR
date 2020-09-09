@@ -3,12 +3,18 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 //#include <dictionary.h>
 
 #define TABLE_SIZE 100000
 // cora_adj.txt has 2708 nodes; For other graphs, it can set it to be same as TABLE_SIZE if number of nodes is not known
 #define NODE_NUM 2708 
+#define MAX_STEPS 7
+#define ALPHA 0.95
+#define M_RW 4000 // 4000 random walks
+#define SEED_RATIO 0.05
+
 typedef struct {
     int left;
     int right;
@@ -39,9 +45,12 @@ vertex *resize_array(vertex *st, int m){
 
 //each element in hash_table is a pointer that points to vertex data type
 vertex * hash_table[TABLE_SIZE];
-// counter is used to keep track of the number of count during random walk
-int counter[TABLE_SIZE];
-
+// counter is used to keep track of number of times of visting node "u" starting from node "v" at step i 
+// Therefore, the counter Y column will have to be COMB = MAX_STEPS * (NODE_NUM+1)
+// counter x index will go from 1 to NODE_NUM, y index will to from 0 to COMB-1
+#define COMB MAX_STEPS*(NODE_NUM+1)
+int counter[NODE_NUM+1][COMB] = {0}; // by default, it should also be 0 without assigning 
+double score[TABLE_SIZE];
 
 
 //input node is a number, the simplest hashing will be returning itself.
@@ -105,27 +114,73 @@ bool hash_value_insert(vertex *p, int n){
     return true;
 }
 
-int random_walk( vertex * table[], int start, int counter[]){
-    
-    int currnode = hash(start);
+int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
 
-    int walk = 0;
-    int total_walk = 100000; // total number of walks, this can be larger if graph is bigger
-    
-    while(walk <= total_walk){
-        counter[currnode] += 1;
-        int right = table[currnode]->right;
-        int nextnode_index = rand()%(right+1); // it is going to randomly pick the next adjacent node
-        int nextnode = table[currnode]->value[nextnode_index];
-        currnode = nextnode;
+    int ridx = 0;
+    int seed_count=floor(NODE_NUM*SEED_RATIO);
+    int seedset[seed_count];
+    int visited[NODE_NUM+1] =  {0};
 
-        walk += 1;
+    /* the following for loop is to create seed set */
+    for(int i=0; i<seed_count;i++){
+        
+        int seed = rand()%(NODE_NUM)+1; /*seed is randomly pick from 1 to NODE_NUM here */
+
+        /* the while loop is to make sure that there are seed_count number of unique nodes in in seedset */
+        while(visited[seed] == 1){ 
+            seed = rand()%(NODE_NUM)+1;
+        }
+        seedset[ridx] = seed;
+        visited[seed] = 1;
+        ridx += 1;
+    }
+
+    /* the following 3 nested for loop is to fill up the counter[][] */
+    for(int s=0; s<seed_count; s++){
+        int startn = hash(seedset[s]); // the variable use slight different naming as below is because it is easier copy the code somewhere else debugging
+        int currn = startn;
+        /* m times l-step walk for each seed node*/
+        for(int m=1; m<=m_rw; m++){
+            for(int i=0; i<=MAX_STEPS; i++){
+                int y = (startn-1)*MAX_STEPS + i; // y start from 0, y is a funciton of startn and i, which is intended
+                counter[currn][y] += 1;  // currn (x) start from 1
+
+                // the following 3 lines is to random walk and pick one neighbour node
+                int ri = table[currn]->right;  
+                int nnode_index = rand()%(ri+1); 
+                int nnode = table[currn]->value[nnode_index];
+                currn = nnode;      
+                }
+        }        
+
+    }
+
+
+    // the following 3 nested for loop is to caculate the score for each node
+    for(int curr=1; curr<=NODE_NUM; curr++){
+        int currnode = hash(curr);
+        for(int i=0; i<=MAX_STEPS; i++){
+            for(int start=1;start<=NODE_NUM; start++){
+                int startnode = hash(start); // slight different naming as above
+                
+                int startnode_degree = table[startnode]->right+1;
+                int index = (startnode-1)*MAX_STEPS + i;
+                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree;
+
+            }
+        }
+    }
+
+    // And each node's score needs to be divided by its own degree
+    for(int i=1; i <= NODE_NUM; i++){
+        int curr = hash(i);
+        score[curr] /= (table[curr]->right+1);
     }
     return 0;
 
 }
 
-int *array;
+double *array;
 
 // compare function which is called by sort_array function
 int cmp(const void *a, const void *b){
@@ -135,7 +190,7 @@ int cmp(const void *a, const void *b){
     return array[ia] > array[ib] ? -1 : array[ia] < array[ib]; 
 }
 
-int sort_array(int * data, int max_size){
+int sort_array(double * data, int max_size){
     //int data[] ={ 5,4,1,2,3,4,100,50,50,50,10055};
     //int size = sizeof(data)/sizeof(*data);
     int size = max_size;
@@ -148,12 +203,12 @@ int sort_array(int * data, int max_size){
     array = data;
     qsort(index, size, sizeof(*index), cmp);
     //printf("\n\ncount_number\tnode\n"); // it is for printing out in terminal when debugging
-    fprintf(fptr, "%s\t%s\n", "count_number", "node");
+    fprintf(fptr, "%s\t\t\t\t%s\n", "score", "node");
 
     for(int i=0;i<size;i++){
         //printf("%d\t\t\t%d\n", data[index[i]], index[i]);
         if(index[i]>=1){ // remove node 0; node 0 doesn't exist, node starts from 1
-        fprintf(fptr, "%d\t\t%d\n", data[index[i]], index[i]);
+        fprintf(fptr, "%f\t\t%d\n", data[index[i]], index[i]);
         }
     }
     return 0;
@@ -167,7 +222,6 @@ int main() {
     int num1, num2, c;
 
     while(1) {
-      //c = fgetc(fp);
 
 
     fscanf(fp, "%d %d", &num1, &num2);
@@ -190,14 +244,14 @@ int main() {
     //}
    }
 
-   random_walk(*&hash_table, 1, *&counter);
-    /*
-    for(int i =1; i <= NODE_NUM; i++){
-        printf("counter[%d] value is %d \n", i, counter[i]);
+   random_walk(*&hash_table, *&counter, M_RW);
+    
+   /*for(int i =1; i <= NODE_NUM; i++){
 
-    }
-    */
-   sort_array(counter, NODE_NUM+1);
+       printf("node is %d, score is %f \n", i, score[i]);
+   } */
+
+   sort_array(score, NODE_NUM+1);
     //print_table();
     return 0;
 }
