@@ -117,8 +117,8 @@ bool hash_value_insert(vertex *p, int n){
 int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
 
     int ridx = 0;
-    int seed_count=floor(NODE_NUM*SEED_RATIO);
-    int seedset[seed_count];
+    int seed_count=floor(NODE_NUM*SEED_RATIO); // seed_count is number of seeds required
+    int seedset[seed_count]; // contains the seeds nodes
     int visited[NODE_NUM+1] =  {0};
 
     /* the following for loop is to create seed set */
@@ -126,7 +126,7 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
         
         int seed = rand()%(NODE_NUM)+1; /*seed is randomly pick from 1 to NODE_NUM here */
 
-        /* the while loop is to make sure that there are seed_count number of unique nodes in in seedset */
+        /* the while loop and visited[] is to make sure that there are seed_count number of unique nodes in in seedset */
         while(visited[seed] == 1){ 
             seed = rand()%(NODE_NUM)+1;
         }
@@ -135,15 +135,20 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
         ridx += 1;
     }
 
-    /* the following 3 nested for loop is to fill up the counter[][] */
+    /* the following 3 nested for loop is to fill up the counter[][] 
+       counter[NODE_NUM+1][COMB] is a 2D array, it records the number of times a node is visted when specific i step and start node
+       COMB is ranging from 0 MAX_STEPS * (NODE_NUM+1); 
+    */
+
     for(int s=0; s<seed_count; s++){
         int startn = hash(seedset[s]); // the variable use slight different naming as below is because it is easier copy the code somewhere else debugging
         int currn = startn;
         /* m times l-step walk for each seed node*/
         for(int m=1; m<=m_rw; m++){
             for(int i=0; i<=MAX_STEPS; i++){
-                int y = (startn-1)*MAX_STEPS + i; // y start from 0, y is a funciton of startn and i, which is intended
-                counter[currn][y] += 1;  // currn (x) start from 1
+                // y start from 0, y is a funciton of start node and i, which is intended
+                int y = (startn-1)*MAX_STEPS + i; 
+                counter[currn][y] += 1;  // currn start from 1
 
                 // the following 3 lines is to random walk and pick one neighbour node
                 int ri = table[currn]->right;  
@@ -152,9 +157,7 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
                 currn = nnode;      
                 }
         }        
-
     }
-
 
     // the following 3 nested for loop is to caculate the score for each node
     for(int curr=1; curr<=NODE_NUM; curr++){
@@ -165,7 +168,9 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw){
                 
                 int startnode_degree = table[startnode]->right+1;
                 int index = (startnode-1)*MAX_STEPS + i;
-                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree;
+
+                // equation:  (alpha ^ i) * counter[][] * start node's degree
+                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
 
             }
         }
