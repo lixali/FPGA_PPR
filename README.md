@@ -1,7 +1,16 @@
-# FPGA_PPR
+## Random Walk on FPGA
+---
+### Python Implementation
++ Include Files:\
+\-- Random_Walk.py\
+\-- Graph.py
 
-To run the python version:
++ To run the python version:\
+```python Random_Walk.py -c=xxx -sr=xxx```\
+(The parameters' description can be found in Random_Walk.py)
 
-python Random_Walk.py -c=xxx -sr=xxx
++ Python version provides hyper-paramater tunning entries that can be visualized.
 
-The parameters' description can be found in Random_Walk.py
+---
+### C Implementation
++ Use makefile
