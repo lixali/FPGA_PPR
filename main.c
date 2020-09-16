@@ -14,7 +14,7 @@ int main() {
     init_hash_table();
     //print_table();
     
-    FILE * fp = fopen ("./cora_adj.txt", "r");
+    FILE * fp = fopen ("./cora_adj.txt", "r"); // this file input should also be as a variable
     int num1, num2, c;
 
     while(1) {
@@ -40,7 +40,7 @@ int main() {
    }
 
    //random_walk(*&hash_table, *&counter, M_RW, score[TABLE_SIZE-1]);
-   random_walk(*&hash_table, *&counter, M_RW);
+   random_walk(*&hash_table, *&counter, M_RW, SEED_COUNT, MAX_STEPS, NODE_NUM);
 
    /*for(int i =1; i <= NODE_NUM; i++){
        printf("node is %d, score is %f \n", i, score[i]);
