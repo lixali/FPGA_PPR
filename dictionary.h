@@ -1,25 +1,28 @@
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#ifndef RANDOM_WALK_H
+#define RANDOM_WALK_H
 
-// the table size can be set larger if the number of nodes exceeds 100K
-#define TABLE_SIZE 100000
+#include "dictionary.h"
 
-typedef struct {
-    int left;
-    int right;
-    int key;
-    // define an value[] array within the struct, this array will need to be resizable, the left and right index are in ->left and ->right respectively
-    int  value[]; 
-}vertex;
+/*
+All the hyper parameter are here from line 11 to 16, tuning should be done in here
+*/
 
-//each element in hash_table is a pointer that points to vertex data type
-vertex * hash_table[TABLE_SIZE];
+// cora_adj.txt has 2708 nodes; For other graphs, it can set it to be same as TABLE_SIZE if number of nodes is not known
+#define NODE_NUM 2708 
+#define MAX_STEPS 5
+#define ALPHA 0.95
+#define M_RW 500 // 4000 random walks
+#define SEED_RATIO 0.05
+#define COMB MAX_STEPS*(NODE_NUM+1)
+#define SEED_COUNT 20
 
-void init_hash_table();
-bool hash_value_insert(vertex *p, int n);
-vertex *init_array(int node, int m);
-vertex *resize_array(vertex *st, int m);
-unsigned int hash(int node);
+// counter is used to keep track of number of times of visting node "u" starting from node "v" at step i 
+// Therefore, the counter Y column will have to be COMB = MAX_STEPS * (NODE_NUM+1)
+// counter x index will go from 1 to NODE_NUM, y index will to from 0 to COMB-1
+int counter[NODE_NUM+1][COMB]; // by default, it should also be 0 without assigning 
+double score[TABLE_SIZE];
 
+//int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, double score[TABLE_SIZE]);
+int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, int sc, int max_steps, int node_num);
 
 #endif
