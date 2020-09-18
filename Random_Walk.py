@@ -27,12 +27,16 @@ parser.add_argument('--seed-ratio', '-sr', type=float, default=0.05,
                     help='the percentage of seed nodes within the community')
 parser.add_argument('--top-c', '-c', type=float, default=1.0,
                     help='the percentage of top-c ranking nodes within the graph')
+parser.add_argument('--cmty_index', '-ic', type=int, default=-1,
+                    help='the index of community to perform the walk on. -1 is largest.')
+parser.add_argument('--node_index', '-nc', type=int, default=-1,
+                    help='the index of node in the community to perform the walk on. -1 does all nodes.')
 
 print("Running Experiments on Random Walk Algorithm")
 
 def set_hyper_parameters( hy_params ):
     global args, graph_file, label_file, max_length, max_itr_all
-    global max_itr_seed, alpha, seed_ratio, top_c
+    global max_itr_seed, alpha, seed_ratio, top_c, cmty_index, node_index
 
     args = parser.parse_args()
     graph_file = args.graph
@@ -43,6 +47,8 @@ def set_hyper_parameters( hy_params ):
     alpha = args.alpha
     seed_ratio = args.seed_ratio
     top_c = args.top_c
+    cmty_index = args.cmty_index
+    node_index = args.node_index
 
     if hy_params:
         if 'graph_file' in hy_params:
@@ -77,7 +83,7 @@ def set_hyper_parameters( hy_params ):
 def Random_Walk( hy_params = {} ):
 
     global args, graph_file, label_file, max_length, max_itr_all
-    global max_itr_seed, alpha, seed_ratio, top_c
+    global max_itr_seed, alpha, seed_ratio, top_c, cmty_index, node_index
 
     # if hyperparameters are passed from outside
     set_hyper_parameters( hy_params )
@@ -94,6 +100,11 @@ def Random_Walk( hy_params = {} ):
     #     print(n)
     #     print(g.nodes[n].degree)
     #     print(g.nodes[n].neighbors)
+    #for n in g.nodes:
+    #    print(n, g.nodes[n])
+
+    print(g.nodes[1])
+    print(type(g.nodes[1]))
         
     print("Graph size: E = %d, V = %d" % (g.edge_cnt, g.node_cnt))
 
@@ -101,20 +112,26 @@ def Random_Walk( hy_params = {} ):
     # find the largest community in the graph
     all_communities = {}
     f = open(label_file, 'r')
+    cmty = 1
     for line in f.readlines():
-        node = map(int, re.findall(r'\d+', line))[0]
-        cmty = map(int, re.findall(r'\d+', line))[1]
-        if cmty in all_communities:
-            all_communities[cmty].append(node)
-        else:
-            all_communities[cmty] = []
+        cmty_nodes = re.findall(r'\d+', line)
+        if len(cmty_nodes) >= 100:
+            all_communities[cmty] = map(int, cmty_nodes)
+        cmty = cmty + 1
     f.close()
 
-    # for cmty in all_communities:
-    #     print("Community %d of size %d" % (cmty, len(all_communities[cmty])))
+    # print all communities that have been accepted
+    for cmty in all_communities:
+        print("Community %d of size %d" % (cmty, len(all_communities[cmty])))
 
-    largest_cmty_size = max(len(item) for item in all_communities.values())
+    # allow user to choose specific community
+    if cmty_index < 0:
+        largest_cmty_size = max(len(item) for item in all_communities.values())
+    else:
+        largest_cmty_size = len(all_communities[cmty_index])
     print("Largest community size: " + str(largest_cmty_size))
+
+    # TODO currently, if two communities had equal size, this would grab them both
     cmty_id = [key for key in all_communities if len(all_communities[key]) == largest_cmty_size]
     print("Largest community ID: " + str(cmty_id[0]))
     largest_cmty = all_communities[cmty_id[0]]
@@ -126,7 +143,10 @@ def Random_Walk( hy_params = {} ):
     f.close()
 
     # specify the seed set
-    cmty_seeds = sample(largest_cmty, int(seed_ratio * largest_cmty_size))
+    if node_index < 0:
+        cmty_seeds = sample(largest_cmty, int(seed_ratio * largest_cmty_size))
+    else:
+        cmty_seeds = {largest_cmty[node_index]}
     cmty_seeds_cnt = len(cmty_seeds)
     print("Community seed set size: " + str(cmty_seeds_cnt))
     largest_cmty_seeds_file = label_file[: len(label_file)-4 ] + '_largest_cmty_seeds.txt'
@@ -135,10 +155,15 @@ def Random_Walk( hy_params = {} ):
         f.write(str(ele) + '\n')
     f.close()
 
+    print('community seeds')
+    for seed in cmty_seeds:
+        print(seed)
+
     # start random walk
     for seed_node_id in cmty_seeds:
         # print("+ Computing seed node %d" % seed_node_id)
 
+        #seed_node_id = int(seed_node_id)
         seed_node = g.nodes[seed_node_id]
         # print(seed_node.degree)
         # print(seed_node.neighbors)
@@ -197,7 +222,7 @@ def Random_Walk( hy_params = {} ):
 
     # rank those nodes
     sorted_nodes_raw = sorted(g.nodes.items(), key=lambda x: x[1].s_u_a_score, reverse=True)
-    print("Node ranking:")
+    #print("Node ranking:")
     rank = 1
     sorted_nodes = []
     for node in sorted_nodes_raw:
@@ -210,6 +235,7 @@ def Random_Walk( hy_params = {} ):
     return sorted_nodes
 
 def Plot_Curve( sorted_nodes_list, file_name ):
+    print('plotting curve')
 
     # get the gound truth community
     largest_cmty_file = label_file[: len(label_file)-4 ] + '_largest_cmty.txt'
@@ -291,7 +317,8 @@ def main():
 
     # Plot_Curve(sorted_nodes_list, 'max_length')
 
-    for alpha in numpy.arange(0.80, 1.0, 0.02):
+    #for alpha in numpy.arange(0.80, 1.0, 0.02):
+    for alpha in numpy.arange(0.80, 0.84, 0.02):
         param['alpha'] = alpha
         sorted_nodes = Random_Walk(param)
         sorted_nodes_list.append([sorted_nodes, alpha])
