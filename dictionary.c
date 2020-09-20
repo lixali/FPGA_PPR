@@ -11,7 +11,7 @@
 // vertex struct the contains 
 vertex *init_array(int node, int m){
     vertex *st = (vertex *)malloc(sizeof(vertex)+m*sizeof(int));
-    st->left = 0; // left and st->value[] array's left most index, right is right most index
+    st->left = 0; // left and st->neighbours[] array's left most index, right is right most index
     st->right = m-1;
     st->key = node;
     return st;
@@ -69,18 +69,14 @@ bool hash_table_insert(vertex *p){
     return true;
 }
 
-// add node to the end of the list vertex->value[] 
+// add node to the end of the list vertex->neighbours[] 
 bool hash_value_insert(vertex *p, int n){
     //printf("p and right is %d %d \n", p->key, p->right);
-    p->value[p->right] = n;
+    p->neighbours[p->right] = n;
     /*
     for(int i = 0; i<p->right+1; i++){
-        printf("value is %d \n", p->value[i]);
+        printf("neighbours is %d \n", p->neighbours[i]);
     }
     */
     return true;
 }
-
-
-
-

@@ -1,6 +1,8 @@
+all: runmain
+
 run: runmain
-	./main
+	./result
 runmain: clean
-	gcc main.c random_walk.c dictionary.c sort_array.c -o main
+	gcc main.c random_walk.c dictionary.c sort_array.c -o result -std=c99 -lm
 clean:
-	rm -f main
+	rm -f result

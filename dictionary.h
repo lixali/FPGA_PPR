@@ -9,7 +9,7 @@ typedef struct {
     int right;
     int key;
     // define an value[] array within the struct, this array will need to be resizable, the left and right index are in ->left and ->right respectively
-    int  value[]; 
+    int  neighbours[]; 
 }vertex;
 
 //each element in hash_table is a pointer that points to vertex data type
