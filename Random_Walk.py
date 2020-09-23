@@ -26,7 +26,7 @@ parser.add_argument('--alpha', '-a', type=float, default=0.95,
 parser.add_argument('--seed-ratio', '-sr', type=float, default=0.05,
                     help='the percentage of seed nodes within the community')
 parser.add_argument('--top-c', '-c', type=float, default=1.0,
-                    help='the percentage of top-c ranking nodes within the graph')
+                    help='the proportion of top-c ranking nodes within the graph, as a proportion of the size of the target community')
 parser.add_argument('--cmty_index', '-ic', type=int, default=-1,
                     help='the index of community to perform the walk on. -1 is largest.')
 parser.add_argument('--node_index', '-nc', type=int, default=-1,
@@ -84,6 +84,7 @@ def Random_Walk( hy_params = {} ):
 
     global args, graph_file, label_file, max_length, max_itr_all
     global max_itr_seed, alpha, seed_ratio, top_c, cmty_index, node_index
+    global total_nodes
 
     # if hyperparameters are passed from outside
     set_hyper_parameters( hy_params )
@@ -105,6 +106,7 @@ def Random_Walk( hy_params = {} ):
 
     print(g.nodes[1])
     print(type(g.nodes[1]))
+    total_nodes = g.node_cnt
         
     print("Graph size: E = %d, V = %d" % (g.edge_cnt, g.node_cnt))
 
@@ -126,31 +128,35 @@ def Random_Walk( hy_params = {} ):
 
     # allow user to choose specific community
     if cmty_index < 0:
-        largest_cmty_size = max(len(item) for item in all_communities.values())
-    else:
-        largest_cmty_size = len(all_communities[cmty_index])
-    print("Largest community size: " + str(largest_cmty_size))
+        length = -1
+        for key, value in all_communities.items():
+            if length < len(value):
+                length = len(value)
+                cmty_index = key
+                print("new longest found, #", cmty_index, ": ", value)
 
     # TODO currently, if two communities had equal size, this would grab them both
-    cmty_id = [key for key in all_communities if len(all_communities[key]) == largest_cmty_size]
-    print("Largest community ID: " + str(cmty_id[0]))
-    largest_cmty = all_communities[cmty_id[0]]
+    #cmty_id = [key for key in all_communities if len(all_communities[key]) == target_cmty_size]
+    #print("Largest community ID: " + str(cmty_id[0]))
+    target_cmty = all_communities[cmty_index]
+    print("Chosen community index: ", cmty_index, " containing ", len(target_cmty), " nodes")
 
-    largest_cmty_file = label_file[: len(label_file)-4 ] + '_largest_cmty.txt'
-    f = open(largest_cmty_file, 'w')
-    for ele in largest_cmty:
+    target_cmty_file = label_file[: len(label_file)-4 ] + '_target_cmty.txt'
+    f = open(target_cmty_file, 'w')
+    for ele in target_cmty:
         f.write(str(ele) + '\n')
     f.close()
 
     # specify the seed set
     if node_index < 0:
-        cmty_seeds = sample(largest_cmty, int(seed_ratio * largest_cmty_size))
+        cmty_seeds = sample(target_cmty, int(seed_ratio * len(target_cmty)))
     else:
-        cmty_seeds = {largest_cmty[node_index]}
+        cmty_seeds = {target_cmty[node_index]}
+
     cmty_seeds_cnt = len(cmty_seeds)
     print("Community seed set size: " + str(cmty_seeds_cnt))
-    largest_cmty_seeds_file = label_file[: len(label_file)-4 ] + '_largest_cmty_seeds.txt'
-    f = open(largest_cmty_seeds_file, 'w')
+    target_cmty_seeds_file = label_file[: len(label_file)-4 ] + '_target_cmty_seeds.txt'
+    f = open(target_cmty_seeds_file, 'w')
     for ele in cmty_seeds:
         f.write(str(ele) + '\n')
     f.close()
@@ -187,19 +193,8 @@ def Random_Walk( hy_params = {} ):
                     next_node.counters[seed_node_id][step] = int(0)
                 
                 next_node.counters[seed_node_id][step] += 1
-                
-                # print("  ... curr_node: %d" % curr_node.node_id)
-                # sys.stdout.write("  ... curr_node's neighbors: ")
-                # print(curr_node_neighbors)
 
                 curr_node = next_node
-
-    # print("Results of Counters")
-    # for n in g.nodes:
-    #     print("node: " + str(n))
-    #     for ele in g.nodes[n].counters:
-    #         print(ele)
-    #         print(g.nodes[n].counters[ele])
 
     # compute s_{u, a} score
     for node_id in g.nodes:
@@ -218,19 +213,11 @@ def Random_Walk( hy_params = {} ):
 
                 s_u_a += (alpha ** step) * x_u_i_v * seed_node_degree
         node.s_u_a_score = 1.0 * s_u_a / node.degree
-        #print("Node %d: score: %f" % (node_id, node.s_u_a_score))
 
     # rank those nodes
     sorted_nodes_raw = sorted(g.nodes.items(), key=lambda x: x[1].s_u_a_score, reverse=True)
-    #print("Node ranking:")
-    rank = 1
-    sorted_nodes = []
-    for node in sorted_nodes_raw:
-        if rank > int(top_c * g.node_cnt):
-            break
-        #print("Rank %d (score %f): Node %d" % (rank, node[1].s_u_a_score, node[1].node_id))
-        rank += 1
-        sorted_nodes.append(node[1])
+    sorted_nodes = [node[1] for node in sorted_nodes_raw[0:int(top_c * len(target_cmty))]]
+    print("sorted nodes count: ", len(sorted_nodes))
 
     return sorted_nodes
 
@@ -238,44 +225,58 @@ def Plot_Curve( sorted_nodes_list, file_name ):
     print('plotting curve')
 
     # get the gound truth community
-    largest_cmty_file = label_file[: len(label_file)-4 ] + '_largest_cmty.txt'
-    f = open(largest_cmty_file, 'r')
-    largest_cmty = []
+    target_cmty_file = label_file[: len(label_file)-4 ] + '_target_cmty.txt'
+    f = open(target_cmty_file, 'r')
+    target_cmty = []
     for line in f.readlines():
-        largest_cmty.append(int(line))
+        target_cmty.append(int(line))
     f.close()
-    largest_cmty_size = len(largest_cmty)
+    target_cmty_size = len(target_cmty)
 
 
-    fig, (subfig0, subfig1) = plt.subplots(2, 1)
+    fig, (subfig0, subfig1, subfig2) = plt.subplots(3, 1)
     for sorted_nodes, param in sorted_nodes_list:
         # compute the precision and recall, plot the curve for each combination
         true_pos = 0
         fals_pos = 0
         prec = 0
         recl = 0
+        fpr = 0
         prec_list = []
         recl_list = []
         idx = 0
         idx_list = []
 
+        fpr_list = []
+
+        neg = total_nodes - target_cmty_size
+
         for node in sorted_nodes:
-            if node.node_id in largest_cmty:
+            if node.node_id in target_cmty:
                 true_pos += 1
             else:
                 fals_pos += 1
 
             prec = 1.0 * true_pos / (true_pos + fals_pos)
-            recl = 1.0 * true_pos / largest_cmty_size
+            recl = 1.0 * true_pos / target_cmty_size
+            fpr = 1.0 * fals_pos / neg
             idx += 1
 
             prec_list.append(prec)
             recl_list.append(recl)
-            idx_list.append(idx * 1.0 / largest_cmty_size)
+            fpr_list.append(fpr)
+            idx_list.append(idx * 1.0 / target_cmty_size)
         
+        """print('precision list')
+        print(prec_list[0:2*target_cmty_size])
+        print('recall list')
+        print(recl_list[0:2*target_cmty_size])
+        print('fpr list')
+        print(fpr_list[0:2*target_cmty_size])"""
         subfig0.plot(recl_list, prec_list, color='b')
         subfig1.plot(idx_list, recl_list, color='r')
         subfig1.plot(idx_list, prec_list, color='y')
+        subfig2.plot(fpr_list, recl_list, color='g')
 
 
     subfig0.legend(["Precision-Recall"])
@@ -285,8 +286,10 @@ def Plot_Curve( sorted_nodes_list, file_name ):
     subfig1.legend(["Recall", "Precision"])
     subfig1.set_xlabel("# of top-c ranking nodes")
 
+    subfig2.legend(["Recall, False Positive Rate"])
+
     output_file = graph_file[: len(graph_file)-4 ] + '_' + file_name + '_curve' + '.png'
-    plt.savefig(output_file)
+    plt.savefig(output_file, pad_inches=1.5)
 
 
 
@@ -317,8 +320,8 @@ def main():
 
     # Plot_Curve(sorted_nodes_list, 'max_length')
 
-    #for alpha in numpy.arange(0.80, 1.0, 0.02):
-    for alpha in numpy.arange(0.80, 0.84, 0.02):
+    for alpha in numpy.arange(0.80, 1.0, 0.02):
+    #for alpha in numpy.arange(0.80, 0.84, 0.02):
         param['alpha'] = alpha
         sorted_nodes = Random_Walk(param)
         sorted_nodes_list.append([sorted_nodes, alpha])
