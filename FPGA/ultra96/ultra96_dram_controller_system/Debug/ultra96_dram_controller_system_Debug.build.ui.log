@@ -1,0 +1,10 @@
+2020-09-23T23:07:54.50070100255-23:07:54 **** Build of configuration Debug for project ultra96_dram_controller_system ****
+000-make all 
+000-Generating bif file for the system project
+000-generate_system_bif.bat 49761 C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/ultra96_test.xpfm standalone_domain C:/Users/Lixiang/workspace/ultra96_dram_controller_system/Debug/system.bif
+000-sdcard_gen --xpfm C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/ultra96_test.xpfm --sys_config ultra96_test --bif C:/Users/Lixiang/workspace/ultra96_dram_controller_system/Debug/system.bif --bitstream C:/Users/Lixiang/workspace/ultra96_dram_controller/_ide/bitstream/design_1_wrapper.bit --elf C:/Users/Lixiang/workspace/ultra96_dram_controller/Debug/ultra96_dram_controller.elf,psu_cortexa53_0
+000-creating BOOT.BIN using C:/Users/Lixiang/workspace/ultra96_dram_controller/_ide/bitstream/design_1_wrapper.bit
+000-Running C:/Xilinx/Vitis/2020.1/bin/bootgen -arch zynqmp -image C:/Users/Lixiang/workspace/ultra96_dram_controller_system/Debug/sd_card_temp/boot.bif -w -o i BOOT.BIN
+00255-
+23:08:41 Build Finished (took 46s.884ms)
+

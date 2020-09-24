@@ -1,0 +1,56 @@
+2020-09-23T23:07:45.587290300255-23:07:45 **** Build of configuration Debug for project ultra96_dram_controller ****
+000-make all 
+000-'Building file: ../src/xmt_common.c'
+000-'Invoking: ARM v8 gcc compiler'
+000-aarch64-none-elf-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xmt_common.o" -IC:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include -MMD -MP -MF"src/xmt_common.d" -MT"src/xmt_common.o" -o "src/xmt_common.o" "../src/xmt_common.c"
+000-In file included from ../src/xmt_common.h:48,
+000-                 from ../src/xmt_common.c:35:
+000/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h65-1-1#pragma message: For the sleep routines, Global timer is being used0-C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h:65:9: note: #pragma message: For the sleep routines, Global timer is being used
+000-   65 | #pragma message ("For the sleep routines, Global timer is being used")
+000-      |         ^~~~~~~
+000-'Finished building: ../src/xmt_common.c'
+000-' '
+000-'Building file: ../src/xmt_main.c'
+000-'Invoking: ARM v8 gcc compiler'
+000-aarch64-none-elf-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xmt_main.o" -IC:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include -MMD -MP -MF"src/xmt_main.d" -MT"src/xmt_main.o" -o "src/xmt_main.o" "../src/xmt_main.c"
+000-In file included from ../src/xmt_common.h:48,
+000-                 from ../src/xmt_main.c:33:
+000/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h65-1-1#pragma message: For the sleep routines, Global timer is being used0-C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h:65:9: note: #pragma message: For the sleep routines, Global timer is being used
+000-   65 | #pragma message ("For the sleep routines, Global timer is being used")
+000-      |         ^~~~~~~
+000-'Finished building: ../src/xmt_main.c'
+000-' '
+000-'Building file: ../src/xmt_read_eye.c'
+000-'Invoking: ARM v8 gcc compiler'
+000-aarch64-none-elf-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xmt_read_eye.o" -IC:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include -MMD -MP -MF"src/xmt_read_eye.d" -MT"src/xmt_read_eye.o" -o "src/xmt_read_eye.o" "../src/xmt_read_eye.c"
+000-In file included from ../src/xmt_common.h:48,
+000-                 from ../src/xmt_read_eye.c:32:
+000/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h65-1-1#pragma message: For the sleep routines, Global timer is being used0-C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h:65:9: note: #pragma message: For the sleep routines, Global timer is being used
+000-   65 | #pragma message ("For the sleep routines, Global timer is being used")
+000-      |         ^~~~~~~
+000-'Finished building: ../src/xmt_read_eye.c'
+000-' '
+000-'Building file: ../src/xmt_write_eye.c'
+000-'Invoking: ARM v8 gcc compiler'
+000-aarch64-none-elf-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/xmt_write_eye.o" -IC:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include -MMD -MP -MF"src/xmt_write_eye.d" -MT"src/xmt_write_eye.o" -o "src/xmt_write_eye.o" "../src/xmt_write_eye.c"
+000-In file included from ../src/xmt_common.h:48,
+000-                 from ../src/xmt_write_eye.c:32:
+000/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h65-1-1#pragma message: For the sleep routines, Global timer is being used0-C:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bspinclude/include/xtime_l.h:65:9: note: #pragma message: For the sleep routines, Global timer is being used
+000-   65 | #pragma message ("For the sleep routines, Global timer is being used")
+000-      |         ^~~~~~~
+000-'Finished building: ../src/xmt_write_eye.c'
+000-' '
+000-'Building target: ultra96_dram_controller.elf'
+000-'Invoking: ARM v8 gcc linker'
+000-aarch64-none-elf-gcc -Wl,-T -Wl,../src/lscript.ld -LC:/Users/Lixiang/workspace/ultra96_test/export/ultra96_test/sw/ultra96_test/standalone_domain/bsplib/lib -o "ultra96_dram_controller.elf"  ./src/xmt_common.o ./src/xmt_main.o ./src/xmt_read_eye.o ./src/xmt_write_eye.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+000-'Finished building target: ultra96_dram_controller.elf'
+000-' '
+000-'Invoking: ARM v8 Print Size'
+000-aarch64-none-elf-size ultra96_dram_controller.elf  |tee "ultra96_dram_controller.elf.size"
+000-   text	   data	    bss	    dec	    hex	filename
+000-  60420	   4768	  20660	  85848	  14f58	ultra96_dram_controller.elf
+000-'Finished building: ultra96_dram_controller.elf.size'
+000-' '
+00255-
+23:07:51 Build Finished (took 6s.223ms)
+
