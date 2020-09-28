@@ -1,0 +1,10 @@
+Running Experiments on Random Walk Algorithm
+=== Hyper-parameters ===
+- Graph file: ../../School/Community Detection Research/com-lj.ungraph.txt
+- Label file: ../../School/Community Detection Research/com-lj.all.cmty.txt
+- Max length of a path: 5
+- Max iterations overall: 5000
+- Max iterations for each seed: 500
+- Alpha: 0.8
+- Seed ratio: 0.05
+- Top-c ranking: 1.0

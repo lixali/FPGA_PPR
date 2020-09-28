@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
+import time
 
 
 parser = argparse.ArgumentParser(description='Random Walk Parameters')
@@ -103,28 +104,29 @@ def Random_Walk( hy_params = {} ):
     #     print(g.nodes[n].neighbors)
     #for n in g.nodes:
     #    print(n, g.nodes[n])
+    #print(g.nodes[1])
+    #print(type(g.nodes[1]))
 
-    print(g.nodes[1])
-    print(type(g.nodes[1]))
     total_nodes = g.node_cnt
         
     print("Graph size: E = %d, V = %d" % (g.edge_cnt, g.node_cnt))
 
-
-    # find the largest community in the graph
+    # read in communities
     all_communities = {}
     f = open(label_file, 'r')
     cmty = 1
     for line in f.readlines():
         cmty_nodes = re.findall(r'\d+', line)
-        if len(cmty_nodes) >= 100:
+        if len(cmty_nodes) >= 100 and len(cmty_nodes) <= 3000:
             all_communities[cmty] = map(int, cmty_nodes)
         cmty = cmty + 1
     f.close()
 
-    # print all communities that have been accepted
-    for cmty in all_communities:
-        print("Community %d of size %d" % (cmty, len(all_communities[cmty])))
+    print("Num communities larger than 100: ", len(all_communities))
+
+    # print all communities that have been accepted as large enough
+    """for cmty in all_communities:
+        print("Community %d of size %d" % (cmty, len(all_communities[cmty])))"""
 
     # allow user to choose specific community
     if cmty_index < 0:
@@ -133,11 +135,8 @@ def Random_Walk( hy_params = {} ):
             if length < len(value):
                 length = len(value)
                 cmty_index = key
-                print("new longest found, #", cmty_index, ": ", value)
-
-    # TODO currently, if two communities had equal size, this would grab them both
-    #cmty_id = [key for key in all_communities if len(all_communities[key]) == target_cmty_size]
-    #print("Largest community ID: " + str(cmty_id[0]))
+                # print("new longest found, #", cmty_index, ": ", value)
+    
     target_cmty = all_communities[cmty_index]
     print("Chosen community index: ", cmty_index, " containing ", len(target_cmty), " nodes")
 
@@ -296,6 +295,7 @@ def Plot_Curve( sorted_nodes_list, file_name ):
 def main():
     sorted_nodes_list = []
     param = {}
+    start_time = time.clock()
 
     # for seed_ratio in numpy.arange(0.01, 0.2, 0.01):
     #     param['seed_ratio'] = seed_ratio
@@ -320,14 +320,16 @@ def main():
 
     # Plot_Curve(sorted_nodes_list, 'max_length')
 
-    for alpha in numpy.arange(0.80, 1.0, 0.02):
-    #for alpha in numpy.arange(0.80, 0.84, 0.02):
+    #for alpha in numpy.arange(0.80, 1.0, 0.02):
+    for alpha in numpy.arange(0.80, 0.82, 0.02):
         param['alpha'] = alpha
         sorted_nodes = Random_Walk(param)
         sorted_nodes_list.append([sorted_nodes, alpha])
 
     Plot_Curve(sorted_nodes_list, 'alpha')
 
+    stop_time = time.clock()
+    print(stop_time - start_time)
 
 if __name__ == "__main__":
     main()
