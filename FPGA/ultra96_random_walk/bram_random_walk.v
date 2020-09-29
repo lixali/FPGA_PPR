@@ -5,18 +5,17 @@ module bram_random_walk();
     reg clk, write_enable;
     reg [DATA_WIDTH-1:0] data_in;
     wire [DATA_WIDTH-1:0] data_out;
-
-    parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, DEPTH = 8192, seed_offset = 10, nei_table_offset = 30, score_table_offset = 100;
-    parameter alpha = 1, seed_num = 10, m_rw = 100, max_steps = 7, node_num = 100; // hyper parameters for the random walk
-
+    // nei_addr_table_offset value is determined by number of seed nodes; nei_table_offset is determined by number of number of seeds nodes plus number of nodes in the dictionary * 2 (* 2 because of first and last neighbour's address) ,
+    // score_table_offset is determined by number of seeds nodes plus number of nodes in the dictionary * 2 plus nei_table size; The following number are just picked for testing purpose for now 
+    parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, DEPTH = 8192, nei_addr_table_offset = 10, nei_table_offset = 100, score_table_offset = 1000;
+    parameter alpha = 0.95, seed_num = 10, m_rw = 100, max_steps = 7, node_num = 100; // hyper parameters for the random walk
     reg step_clk, rw_clk, seed_clk, write_enable_reg;
     reg [ADDR_WIDTH-1:0] address, z;
     reg [DATA_WIDTH-1:0] steps, steps_s, curr_node, start_node, curr_counter, counter_randomness, curr_score_s, start_node_degree, self_degree;
     reg [DATA_WIDTH-1:0] y, first_neighbour_address, last_neighbour_address, next_node;
     integer i, rw_count, seed_count, read_count;
     integer get_degree_counter = 0; 
-    integer steps_count_s = 0;
-    //integer score_table_size = 
+    integer steps_count_s = 0;//integer score_table_size = 
     reg [DATA_WIDTH-1:0] curr_node_s = 32'h00000001;
     reg [DATA_WIDTH-1:0] start_node_s = 32'h00000001;
 
@@ -48,6 +47,7 @@ module bram_random_walk();
         steps = steps + 1'b1;
     end 
 
+
     always @(negedge clk) begin // start at the negative edge
         if (seed_count < seed_num) begin
             y = (start_node - 1) * max_steps + steps;  // there is a read cycle here, data_out is the seed_ 
@@ -59,12 +59,12 @@ module bram_random_walk();
                 #(period) curr_counter = data_out; // read the counter value    
             end else if (read_count == 1) begin
                 write_enable = 1'b0;
-                address = curr_node*2 + seed_offset;
+                address = curr_node*2 + nei_addr_table_offset;
                 read_count += 1;
                 #(period) first_neighbour_address = data_out; // read out the address of curr_node's first neighbour
             end else if (read_count == 2) begin
                 write_enable = 1'b0;
-                address = curr_node*2 + 1'b1 + seed_offset;
+                address = curr_node*2 + 1'b1 + nei_addr_table_offset;
                 read_count += 1;
                 #(period) last_neighbour_address = data_out; // read out the address of curr_node's last neighbour            
             end else if (read_count == 3) begin
@@ -95,12 +95,12 @@ module bram_random_walk();
                         if (get_degree_counter == 0) begin 
                             write_enable = 1'b0; // make sure it will do a read operation
                             get_degree_counter += 1;
-                            address = curr_node_s*2 + seed_offset;
+                            address = curr_node_s*2 + nei_addr_table_offset;
                             #(period) first_neighbour_address = data_out; // read out the address of curr_node's first neighbour
                         end else if (get_degree_counter == 1) begin
                             write_enable = 1'b0; // make sure it will do a read operation
                             get_degree_counter += 1;
-                            address = curr_node_s*2 + 1'b1 + seed_offset;
+                            address = curr_node_s*2 + 1'b1 + nei_addr_table_offset;
                             #(period) last_neighbour_address = data_out; // read out the address of curr_node's first neighbour
                             start_node_degree = last_neighbour_address - first_neighbour_address;
                         end else if (get_degree_counter == 2) begin
