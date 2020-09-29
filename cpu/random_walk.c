@@ -36,31 +36,104 @@ int random_walk( vertex * table[], int** counter, int* seedset, int m_rw, int se
         }        
     }
 
+    int currnode, startnode, startnode_degree, index;
+
+
     // the following 3 nested for loop is to caculate the score for each node
     for(int curr=1; curr<=node_num; curr++){
-    //double * counter_max = counter + node_num;
-    //for(double * ctr = counter; ctr < counter_max; ctr++){
+    //for(int curr = 1; curr <= 1000; curr)
+    //int curr = -1;
+    //int ** counter_max = counter + node_num;
+    //for(int ** ctr = counter; ctr < counter_max; ctr++){
+        //curr++;
+        if(curr % 1000 == 0) printf("%d\n", curr);
+        int currnode = hash(curr);
+
+        for(int i=0; i< max_steps; i++){
+            for(int start=0;start<=seed_count; start++){
+                startnode = hash(seedset[start]); // slight different naming as above
+                //int startnode = seedset[start];
+
+                startnode_degree = table[startnode]->right+1;
+                //int index = i;
+                index = (startnode-1)*max_steps + i;
+
+                // equation:  (alpha ^ i) * counter[][] * start node's degree
+                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
+                //score[curr] += pow(ALPHA, i) * (*ctr)[index] * startnode_degree; 
+            }
+        }
+    }
+
+/*
+    for(int curr=1; curr<=80000; curr++){
+    //for(int curr = 1; curr <= 1000; curr)
+    //int curr = -1;
+    //int ** counter_max = counter + node_num;
+    //for(int ** ctr = counter; ctr < counter_max; ctr++){
+        //curr++;
+        if(curr % 1000 == 0) printf("%d\n", curr);
+        int currnode = hash(curr);
+
+        for(int i=0; i< max_steps; i++){
+            for(int start=0;start<=seed_count; start++){
+                startnode = hash(seedset[start]); // slight different naming as above
+                //int startnode = seedset[start];
+
+                startnode_degree = table[startnode]->right+1;
+                //int index = i;
+                index = (startnode-1)*max_steps + i;
+
+                // equation:  (alpha ^ i) * counter[][] * start node's degree
+                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
+                //score[curr] += pow(ALPHA, i) * (*ctr)[index] * startnode_degree; 
+            }
+        }
+    }
+
+    for(int curr=80000; curr<=node_num; curr++){
+    //for(int curr = 1; curr <= 1000; curr)
+    //int curr = -1;
+    //int ** counter_max = counter + node_num;
+    //for(int ** ctr = counter; ctr < counter_max; ctr++){
+        //curr++;
+        if(curr % 1000 == 0) printf("%d\n", curr);
+        int currnode = hash(curr);
+
+        for(int i=0; i< max_steps; i++){
+            for(int start=0;start<=seed_count; start++){
+                startnode = hash(seedset[start]); // slight different naming as above
+                //int startnode = seedset[start];
+
+                startnode_degree = table[startnode]->right+1;
+                //int index = i;
+                index = (startnode-1)*max_steps + i;
+
+                // equation:  (alpha ^ i) * counter[][] * start node's degree
+                score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
+                //score[curr] += pow(ALPHA, i) * (*ctr)[index] * startnode_degree; 
+            }
+        }
+    }*/
+
+
+    /*
+    for(int curr=1; curr<=node_num; curr++){
         if(curr % 1000 == 0) printf("%d\n", curr);
         int currnode = hash(curr);
         for(int i=0; i< max_steps; i++){
             for(int start=0;start<=seed_count; start++){
                 int startnode = hash(seedset[start]); // slight different naming as above
-                
-                //check to ensure node exists. for example, amazon has no node 3.
-                /*if(table[startnode] == NULL){
-                    continue;
-                }*/
 
                 int startnode_degree = table[startnode]->right+1;
-                //int index = i;
                 int index = (startnode-1)*max_steps + i;
 
                 // equation:  (alpha ^ i) * counter[][] * start node's degree
                 score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
-                //score[currnode] += pow(ALPHA, i) * ctr[index] * startnode_degree; 
             }
         }
     }
+    */
 
     // And each node's score needs to be divided by its own degree
     for(int i=1; i <= node_num; i++){
