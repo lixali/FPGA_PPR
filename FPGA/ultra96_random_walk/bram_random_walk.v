@@ -4,7 +4,7 @@ module bram_random_walk();
 
     reg clk, write_enable;
     reg [DATA_WIDTH-1:0] data_in;
-    reg reg [DATA_WIDTH-1:0] data_out;
+    wire [DATA_WIDTH-1:0] data_out;
 
     parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, DEPTH = 8192, seed_offset = 10, nei_table_offset = 30, score_table_offset = 100;
     parameter alpha = 1, seed_num = 10, m_rw = 100, max_steps = 7, node_num = 100; // hyper parameters for the random walk
@@ -15,7 +15,8 @@ module bram_random_walk();
     reg [DATA_WIDTH-1:0] y, first_neighbour_address, last_neighbour_address, next_node;
     integer i, rw_count, seed_count, read_count;
     integer get_degree_counter = 0; 
-    integer steps_count_s = 0; //integer score_table_size = 
+    integer steps_count_s = 0;
+    //integer score_table_size = 
     reg [DATA_WIDTH-1:0] curr_node_s = 32'h00000001;
     reg [DATA_WIDTH-1:0] start_node_s = 32'h00000001;
 
@@ -25,14 +26,14 @@ module bram_random_walk();
     end
 
     always begin
-        #(period/2 * max_steps) step_clk = ~step_clk;  
+        #(period/2 * max_steps) step_clk = ~step_clk;  // timescale is 1ns so #5 provides 100MHz clock
         rw_count += 1;
         counter_randomness = counter_randomness + 1'b1;
 
     end
 
     always begin
-        #(period/2 * max_steps * m_rw) rw_clk = ~rw_clk;  
+        #(period/2 * max_steps * m_rw) rw_clk = ~rw_clk;  // timescale is 1ns so #5 provides 100MHz clock
         counter_randomness = counter_randomness + 1'b1;
 
     end
@@ -46,7 +47,6 @@ module bram_random_walk();
         curr_node = start_node;
         steps = steps + 1'b1;
     end 
-
 
     always @(negedge clk) begin // start at the negative edge
         if (seed_count < seed_num) begin
@@ -111,14 +111,14 @@ module bram_random_walk();
                             address = z;
                             #(period) curr_counter = data_out; // read the counter value  
 
-                        end else if (get_degree_count == 3) begin
-                            write_ebable = 1'b0;
+                        end else if (get_degree_counter == 3) begin
+                            write_enable = 1'b0;
                             get_degree_counter += 1;
                             address = curr_node_s + score_table_offset;
                             #(period) curr_score_s = data_out; // read out the address of curr_node's first neighbour
 
-                        end else if (get_degree_count == 4) begin
-                            get_degree_count = 0; // reset to go back to 1st read opeation
+                        end else if (get_degree_counter == 4) begin
+                            get_degree_counter = 0; // reset to go back to 1st read opeation
                             write_enable = 1'b1;
                             curr_score_s = curr_score_s + (alpha ** steps_count_s)*curr_counter*start_node_degree;
                             data_in = curr_score_s; // write the updated score into BRAM
