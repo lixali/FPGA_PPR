@@ -180,6 +180,8 @@ def Random_Walk( hy_params = {} ):
     for node_id in g.nodes:
         node = g.nodes[node_id]
 
+        print(node_id)
+
         s_u_a = 0
         for step in range(0, max_length):
             for seed_node_id in cmty_seeds:

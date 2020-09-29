@@ -9,26 +9,8 @@
 #include "random_walk.h"
 #include "sort_array.h"
 
-void create_seeds(int* seedset, int seed_count) {
-
-    /* the following for loop is to create seed set */
-    FILE * fp = fopen ("./core_cmty_4_seeds.txt", "r");
-    int seed_idx;
-    int ridx = 0;
-    while( !feof(fp) ) {
-        fscanf(fp, "%d", &seed_idx);
-        seedset[ridx++] = seed_idx;
-    }
-}
-
 //int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, double score[TABLE_SIZE]){
-int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, int sc, int max_steps, int node_num){
-
-    int seed_count = sc;
-    int* seedset = malloc(sizeof(int)*seed_count);
-    create_seeds(seedset, seed_count);
-
-
+int random_walk( vertex * table[], int** counter, int* seedset, int m_rw, int seed_count, int max_steps, int node_num){
     /* the following 3 nested for loop is to fill up the counter[][] 
        counter[NODE_NUM+1][COMB] is a 2D array, it records the number of times a node is visted when specific i step and start node
        COMB is ranging from 0 MAX_STEPS * (NODE_NUM+1); 
@@ -42,6 +24,7 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, int 
             for(int i=0; i < max_steps; i++){
                 // y start from 0, y is a funciton of start node and i, which is intended
                 int y = (startn-1)* max_steps + i; 
+                //int y = i;
                 counter[currn][y] += 1;  // currn start from 1
 
                 // the following 3 lines is to random walk and pick one neighbour node
@@ -55,17 +38,26 @@ int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, int 
 
     // the following 3 nested for loop is to caculate the score for each node
     for(int curr=1; curr<=node_num; curr++){
+    //double * counter_max = counter + node_num;
+    //for(double * ctr = counter; ctr < counter_max; ctr++){
+        if(curr % 1000 == 0) printf("%d\n", curr);
         int currnode = hash(curr);
         for(int i=0; i< max_steps; i++){
-            for(int start=1;start<=node_num; start++){
-                int startnode = hash(start); // slight different naming as above
+            for(int start=0;start<=seed_count; start++){
+                int startnode = hash(seedset[start]); // slight different naming as above
                 
+                //check to ensure node exists. for example, amazon has no node 3.
+                /*if(table[startnode] == NULL){
+                    continue;
+                }*/
+
                 int startnode_degree = table[startnode]->right+1;
+                //int index = i;
                 int index = (startnode-1)*max_steps + i;
 
                 // equation:  (alpha ^ i) * counter[][] * start node's degree
                 score[currnode] += pow(ALPHA, i) * counter[currnode][index] * startnode_degree; 
-
+                //score[currnode] += pow(ALPHA, i) * ctr[index] * startnode_degree; 
             }
         }
     }

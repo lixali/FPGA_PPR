@@ -2,7 +2,7 @@
 #define DICTIONARY_H
 
 // the table size can be set larger if the number of nodes exceeds 100K
-#define TABLE_SIZE 100000
+#define TABLE_SIZE 600000
 
 typedef struct {
     int left;
