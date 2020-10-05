@@ -8,6 +8,8 @@
 #include "dictionary.h"
 #include "sort_array.h"
 
+vertex * my_hash_table[TABLE_SIZE];
+
 // vertex struct the contains 
 vertex *init_array(int node, int m){
     vertex *st = (vertex *)malloc(sizeof(vertex)+m*sizeof(int));
@@ -39,7 +41,7 @@ unsigned int hash(int node){
 // initialize the the hash_table[] to be NULL
 void init_hash_table(){
     for(int i=0; i < TABLE_SIZE; i++){
-        hash_table[i] = NULL;
+        my_hash_table[i] = NULL;
     }
 }
 
@@ -47,10 +49,10 @@ void init_hash_table(){
 // it can be used to print before and after the hash_table is filled up
 void print_table(){
     for (int i = 0; i < TABLE_SIZE; i ++){
-        if (hash_table[i] == NULL){
+        if (my_hash_table[i] == NULL){
             printf("\t%i\t --- \n ", i);
         }else {
-            printf("\t%i\t%d",i, hash_table[i]->key);
+            printf("\t%i\t%d",i, my_hash_table[i]->key);
             printf("\n");
         }
     }
@@ -60,12 +62,12 @@ void print_table(){
 bool hash_table_insert(vertex *p){
     if(p == NULL) return false;
     int index = hash(p->key);
-    if (hash_table[index] != NULL){
+    if (my_hash_table[index] != NULL){
 
         return true;
     }
     printf("test p right value %d \n", p->right);
-    hash_table[index] = p;
+    my_hash_table[index] = p;
     return true;
 }
 

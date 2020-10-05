@@ -2,6 +2,7 @@
 #define RANDOM_WALK_H
 
 #include "dictionary.h"
+#include <unordered_map>
 
 /*
 All the hyper parameter are here from line 11 to 16, tuning should be done in here
@@ -22,11 +23,12 @@ All the hyper parameter are here from line 11 to 16, tuning should be done in he
 // Therefore, the counter Y column will have to be COMB = MAX_STEPS * (NODE_NUM+1)
 // counter x index will go from 1 to NODE_NUM, y index will to from 0 to COMB-1
 //int counter[NODE_NUM+1][COMB]; // by default, it should also be 0 without assigning
-int ** counter; //this must be allocated dynamically because NODE_NUM is too large
-double score[TABLE_SIZE];
+//int ** counter; //this must be allocated dynamically because NODE_NUM is too large
+extern std::unordered_map<int, std::unordered_map<int, int>> counter;
+extern double score[TABLE_SIZE];
 
 //int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, double score[TABLE_SIZE]);
-int random_walk( vertex * table[], int** counter, int* seedset, int m_rw, int sc, int max_steps, int node_num);
+int random_walk( vertex * table[], std::unordered_map<int, std::unordered_map<int, int>> counter, int* seedset, int m_rw, int sc, int max_steps, int node_num);
 //int* random_seeds(vertex * )
 
 #endif

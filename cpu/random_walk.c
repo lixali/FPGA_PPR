@@ -9,8 +9,11 @@
 #include "random_walk.h"
 #include "sort_array.h"
 
+std::unordered_map<int, std::unordered_map<int, int>> counter;
+double score[TABLE_SIZE];
+
 //int random_walk( vertex * table[], int counter[NODE_NUM+1][COMB], int m_rw, double score[TABLE_SIZE]){
-int random_walk( vertex * table[], int** counter, int* seedset, int m_rw, int seed_count, int max_steps, int node_num){
+int random_walk( vertex * table[], std::unordered_map<int, std::unordered_map<int, int>> counter, int* seedset, int m_rw, int seed_count, int max_steps, int node_num){
     /* the following 3 nested for loop is to fill up the counter[][] 
        counter[NODE_NUM+1][COMB] is a 2D array, it records the number of times a node is visted when specific i step and start node
        COMB is ranging from 0 MAX_STEPS * (NODE_NUM+1); 
@@ -138,7 +141,9 @@ int random_walk( vertex * table[], int** counter, int* seedset, int m_rw, int se
     // And each node's score needs to be divided by its own degree
     for(int i=1; i <= node_num; i++){
         int curr = hash(i);
-        score[curr] /= (table[curr]->right+1);
+        if(table[curr] != NULL){
+            score[curr] /= (table[curr]->right+1);
+        }
     }
     return 0;
 

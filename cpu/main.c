@@ -11,26 +11,27 @@
 
 void try_insert(int num, int other){
     int index = hash(num);
-    if (hash_table[index] == NULL) {
-      hash_table[index] = init_array(index, 1);
+    if (my_hash_table[index] == NULL) {
+      my_hash_table[index] = init_array(index, 1);
     }
     else{
-      int right = hash_table[index]->right;
-      hash_table[index] = resize_array(hash_table[index],right+2);
+      int right = my_hash_table[index]->right;
+      my_hash_table[index] = resize_array(my_hash_table[index],right+2);
     }
 
-    hash_value_insert(hash_table[index], other); 
+    hash_value_insert(my_hash_table[index], other); 
 }
 
 int main(int argc, char** argv) {
   printf("HI");
 
   //initialize counter
-  counter = malloc(NODE_NUM * sizeof(int *));
+  /*counter = malloc(NODE_NUM * sizeof(int *));
   for(int i = 0; i < NODE_NUM; i++){
     //counter[i] = malloc(MAX_STEPS * sizeof(int));
     counter[i] = malloc(COMB * sizeof(int));
-  }
+  }*/
+  //counter.resize(NODE_NUM, std::vector<int>(COMB));
 
   init_hash_table();
     //print_table();
@@ -56,11 +57,11 @@ int main(int argc, char** argv) {
   printf("chosen community file name: %s\n", argv[2]); // select this in python
 
   FILE * fp2 = fopen(argv[2], "r");
-  int* seedset = malloc(SEED_COUNT * sizeof(int));
+  int* seedset = (int*) malloc(SEED_COUNT * sizeof(int));
 
   int community_size = 16;
   int node_count = 0;
-  int* community_nodes = malloc(16 * sizeof(int));
+  int* community_nodes = (int*) malloc(16 * sizeof(int));
   int node;
 
   while(!feof(fp2)){
@@ -70,7 +71,7 @@ int main(int argc, char** argv) {
     node_count++;
     if(node_count >= community_size){
       community_size *= 2;
-      community_nodes = realloc(community_nodes, community_size * sizeof(int));
+      community_nodes = (int*) realloc(community_nodes, community_size * sizeof(int));
     }
   }
 
@@ -80,13 +81,13 @@ int main(int argc, char** argv) {
   }
 
   //random_walk(*&hash_table, *&counter, M_RW, score[TABLE_SIZE-1]);
-  random_walk(*&hash_table, *&counter, seedset, M_RW, SEED_COUNT, MAX_STEPS, NODE_NUM);
+  random_walk(*&my_hash_table, *&counter, seedset, M_RW, SEED_COUNT, MAX_STEPS, NODE_NUM);
 
    /*for(int i =1; i <= NODE_NUM; i++){
        printf("node is %d, score is %f \n", i, score[i]);
    } */
 
   sort_array(score, NODE_NUM+1);
-    //print_table();
+  print_table();
   return 0;
 }

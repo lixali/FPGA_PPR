@@ -21,7 +21,7 @@ int sort_array(double * data, int max_size){
     //int data[] ={ 5,4,1,2,3,4,100,50,50,50,10055};
     //int size = sizeof(data)/sizeof(*data);
     int size = max_size;
-    int* index = malloc(max_size * sizeof(int));//use malloc to large size array
+    int* index = (int*) malloc(max_size * sizeof(int));//use malloc to large size array
     //int i;
     FILE * fptr = fopen("sorted_nodes.txt", "w");
     for(int i=0;i<size;i++){

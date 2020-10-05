@@ -13,7 +13,7 @@ typedef struct {
 }vertex;
 
 //each element in hash_table is a pointer that points to vertex data type
-vertex * hash_table[TABLE_SIZE];
+extern vertex * my_hash_table[TABLE_SIZE];
 
 void init_hash_table();
 bool hash_value_insert(vertex *p, int n);
