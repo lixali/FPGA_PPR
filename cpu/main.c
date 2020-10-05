@@ -8,6 +8,7 @@
 #include "dictionary.h"
 #include "random_walk.h"
 #include "sort_array.h"
+#include "calculate_stats.h"
 
 void try_insert(int num, int other){
     int index = hash(num);
@@ -88,6 +89,13 @@ int main(int argc, char** argv) {
    } */
 
   sort_array(score, NODE_NUM+1);
-  print_table();
+
+
+  /*int * array = (int*) malloc((NODE_NUM + 1) * sizeof(int));
+  for(int i=0;i<NODE_NUM + 1;i++){
+      array[i] = i;
+  }*/
+  calc_stats(index_array, NODE_NUM+1, community_nodes, node_count, 1.0);
+  //print_table();
   return 0;
 }

@@ -8,6 +8,7 @@
 #include "sort_array.h"
 
 double *array;
+int* index_array;
 
 // compare function which is called by sort_array function
 int cmp(const void *a, const void *b){
@@ -21,21 +22,21 @@ int sort_array(double * data, int max_size){
     //int data[] ={ 5,4,1,2,3,4,100,50,50,50,10055};
     //int size = sizeof(data)/sizeof(*data);
     int size = max_size;
-    int* index = (int*) malloc(max_size * sizeof(int));//use malloc to large size array
+    index_array = (int*) malloc(max_size * sizeof(int));//use malloc to large size array
     //int i;
     FILE * fptr = fopen("sorted_nodes.txt", "w");
     for(int i=0;i<size;i++){
-        index[i] = i;
+        index_array[i] = i;
     }
     array = data;
-    qsort(index, size, sizeof(*index), cmp);
+    qsort(index_array, size, sizeof(*index_array), cmp);
     //printf("\n\ncount_number\tnode\n"); // it is for printing out in terminal when debugging
     fprintf(fptr, "%s\t\t\t\t%s\n", "score", "node");
 
     for(int i=0;i<size;i++){
         //printf("%d\t\t\t%d\n", data[index[i]], index[i]);
-        if(index[i]>=1){ // remove node 0; node 0 doesn't exist, node starts from 1
-        fprintf(fptr, "%f\t\t%d\n", data[index[i]], index[i]);
+        if(index_array[i]>=1){ // remove node 0; node 0 doesn't exist, node starts from 1
+        fprintf(fptr, "%f\t\t%d\n", data[index_array[i]], index_array[i]);
         }
     }
     return 0;

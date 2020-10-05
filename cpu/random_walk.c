@@ -49,7 +49,7 @@ int random_walk( vertex * table[], std::unordered_map<int, std::unordered_map<in
     //int ** counter_max = counter + node_num;
     //for(int ** ctr = counter; ctr < counter_max; ctr++){
         //curr++;
-        if(curr % 1000 == 0) printf("%d\n", curr);
+        //if(curr % 1000 == 0) printf("%d\n", curr);
         int currnode = hash(curr);
 
         for(int i=0; i< max_steps; i++){
