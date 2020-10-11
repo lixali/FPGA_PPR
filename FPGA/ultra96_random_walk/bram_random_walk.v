@@ -1,10 +1,10 @@
 // period, seed node number, number of random walks, number of steps are all pre-defined as parameters here
 // nei_addr_table_offset value is determined by number of seed nodes; nei_table_offset is determined by number of number of seeds nodes plus number of nodes in the dictionary * 2 (* 2 because of first and last neighbour's address) ,
-// score_table_offset is determined by number of seeds nodes plus number of nodes in the dictionary * 2 plus nei_table size; The following number are just picked for testing purpose for now
+// counter_table_offset is determined by number of seeds nodes plus number of nodes in the dictionary * 2 plus nei_table size; The following number are just picked for testing purpose for now
 // cyles means the number of clock cycles that are needed to go through all states in the Finite State Machines(FSM) once 
 module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, 
                         DEPTH = 8192, nei_addr_table_offset = 10, nei_table_offset = 100, 
-                        score_table_offset = 1000, seed_num = 10, m_rw = 100,
+                        counter_table_offset = 1000, seed_num = 10, m_rw = 100,
                         max_steps = 6, node_num = 100, cycles = 9) ( // these parameter can be changed later if needed
     input ready, // if ready is 1'b1, this module will start reading/writing BRAM; 
     input clk, // clk is from PS, 
@@ -22,13 +22,13 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
     reg inner_clk_prev = 1'b0, step_clk_prev = 1'b0, rw_clk_prev = 1'b0;
 	reg oper_flag = 1'b0;
 	reg [ADDR_WIDTH-1:0] address_reg=13'h0000;
-    reg [ADDR_WIDTH-1:0] z, y;
+    reg [ADDR_WIDTH-1:0] z, y; // z is the address of counter for each node (at different steps with different starting nodes; y is intermediate variable to calculate z) 
     reg [DATA_WIDTH-1:0] steps, curr_node, start_node, curr_counter = 32'h0;
     reg [DATA_WIDTH-1:0] first_neighbour_address, last_neighbour_address, next_node;
     wire [DATA_WIDTH-1:0] counter_randomness; // output of linear feeback shift register
 	integer i, rw_count = 0, seed_count = 0, read_write_count = 0;
-    integer curr_m_rw = 0;
-    integer steps_count = 0;
+    integer curr_m_rw = 0; // current number of random walks, ranging from 1 to maximum random walks (m_rw)
+    integer steps_count = 0; // current steps count, ranging from 0 to maximum steps - 1 (max_steps-1)
     reg [DATA_WIDTH-1:0] clk_div1 = 32'h00000001 * cycles, clk_div2 = 32'h00000001 * max_steps * cycles, clk_div3 = 32'h00000001*max_steps * m_rw * cycles;
 	integer rw_flag=0, steps_flag=0, inner_flag=0;
 
@@ -61,14 +61,14 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
         .clk_div(rw_clk)
     );
 
-    lfsr lfsr_ins1(
+    lfsr lfsr_ins1( // instantiation of linear feedback shift register to generate random number
     .clk(clk),
-    .reset(lfsr_reset),    // Active-high synchronous reset to 32'h111
+    .reset(lfsr_reset),    // Active-high synchronous reset to 32'h111; only set it high at the beginning of test bench and then remain low the whole time
     .q(counter_randomness)
 	); 
 
-    always @(posedge clk) begin
-        #(period) step_clk_prev = step_clk; // these 3 _prev variables are used to detect the rising edge of step_clk, rw_clk and inner_clk
+    always @(posedge clk) begin // these 3 _prev variables are used to detect the rising edge of step_clk, rw_clk and inner_clk
+        #(period) step_clk_prev = step_clk; // these 3 _prev variable are used in the following always block
         rw_clk_prev = rw_clk;
 		inner_clk_prev = inner_clk;
     end
@@ -104,8 +104,8 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
 				end
 				
                 if (steps_count < max_steps) begin
-                    if(read_write_count == 0 && rw_flag == 1 && clk == 1'b0) begin
-						address_reg <= seed_count;
+                    if(read_write_count == 0 && rw_flag == 1 && clk == 1'b0) begin // this cycle reads the seed node (which is also the start node)
+						address_reg <= seed_count; 
 						write_enable_reg <= 1'b0;						
 						#(period *0.7) start_node <= data_in; // period * 0.7 delay to read out start_node ( or seed_node)
 						rw_flag <= 0;
@@ -117,10 +117,10 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
 						inner_flag = 0;                            
 					end else if (read_write_count == 3 && inner_flag == 0 && clk == 1'b0) begin
                         write_enable_reg = 1'b0;
-                        y = (start_node - 1) * max_steps + steps_count;  // there is a read cycle here, data_in is the seed_
-                        z = curr_node*(max_steps*node_num) + y + nei_table_offset; // double check if this adddress offset is correct?
-                        address_reg = z;
-                        #(period*0.7) curr_counter = data_in;					
+                        y = (start_node - 1) * max_steps + steps_count;  // y = (start_node-1) * max_steps + curr_steps
+                        z = curr_node*(max_steps*node_num) + y + counter_table_offset; // z = x * col + y + counter_table_offset; col is (number of nodes in subgraph * max_steps)
+                        address_reg = z; // z is the address of counter for each node (at different steps with different starting nodes)
+                        #(period*0.7) curr_counter = data_in;	 // read the counter value from BRAM			
 					end else if (read_write_count == 4 && inner_flag == 0 && clk == 1'b0) begin
                         write_enable_reg = 1'b0;
                         address_reg = curr_node*2 + nei_addr_table_offset;
@@ -136,7 +136,7 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
                         curr_node = next_node;
 					end else if (read_write_count == 7 && inner_flag == 0 && clk == 1'b0) begin
                         write_enable_reg = 1'b1;
-						address_reg = z; // address is still z for updating the counter value
+						address_reg = z; // address is z updating the counter value
                         curr_counter = curr_counter+1; // counter value +=1
                         data_out_reg = curr_counter; // write the counter value to BRAM
 					end else if (read_write_count == 8 && inner_flag == 0 && clk == 1'b0) begin
