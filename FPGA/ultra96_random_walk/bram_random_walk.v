@@ -1,31 +1,31 @@
-//test commet added
+// period, seed node number, number of random walks, number of steps are all pre-defined as parameters here
+// nei_addr_table_offset value is determined by number of seed nodes; nei_table_offset is determined by number of number of seeds nodes plus number of nodes in the dictionary * 2 (* 2 because of first and last neighbour's address) ,
+// score_table_offset is determined by number of seeds nodes plus number of nodes in the dictionary * 2 plus nei_table size; The following number are just picked for testing purpose for now
+// cyles means the number of clock cycles that are needed to go through all states in the Finite State Machines(FSM) once 
 module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, 
                         DEPTH = 8192, nei_addr_table_offset = 10, nei_table_offset = 100, 
                         score_table_offset = 1000, seed_num = 10, m_rw = 100,
                         max_steps = 6, node_num = 100, cycles = 9) ( // these parameter can be changed later if needed
-    input ready,
+    input ready, // if ready is 1'b1, this module will start reading/writing BRAM; 
     input clk, // clk is from PS, 
     output [31:0] data_out,
 	output [12:0] address, // 8K BRAM block
-	output write_enable,
+	output write_enable, // if write_enable is 1'b1, it is write-ready; If it is 1'b0, it is read-ready
 	input [31:0] data_in,
-	input lfsr_reset
+	input lfsr_reset // at the beginning, lfsr_reset needs to be 1'b1 in order to make lfsr initial value to be 32'b111
     );
     
     reg  write_enable_reg;
     reg [DATA_WIDTH-1:0] data_out_reg;
-    //wire [DATA_WIDTH-1:0] data_out;
-    // nei_addr_table_offset value is determined by number of seed nodes; nei_table_offset is determined by number of number of seeds nodes plus number of nodes in the dictionary * 2 (* 2 because of first and last neighbour's address) ,
-    // score_table_offset is determined by number of seeds nodes plus number of nodes in the dictionary * 2 plus nei_table size; The following number are just picked for testing purpose for now
-    wire inner_clk, step_clk, rw_clk;
-    //wire seed_clk,
+    
+    wire inner_clk, step_clk, rw_clk;  // 3 divided clocks
     reg inner_clk_prev = 1'b0, step_clk_prev = 1'b0, rw_clk_prev = 1'b0;
 	reg oper_flag = 1'b0;
 	reg [ADDR_WIDTH-1:0] address_reg=13'h0000;
     reg [ADDR_WIDTH-1:0] z, y;
     reg [DATA_WIDTH-1:0] steps, curr_node, start_node, curr_counter = 32'h0;
     reg [DATA_WIDTH-1:0] first_neighbour_address, last_neighbour_address, next_node;
-    wire [DATA_WIDTH-1:0] counter_randomness;
+    wire [DATA_WIDTH-1:0] counter_randomness; // output of linear feeback shift register
 	integer i, rw_count = 0, seed_count = 0, read_write_count = 0;
     integer curr_m_rw = 0;
     integer steps_count = 0;
@@ -68,7 +68,7 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
 	); 
 
     always @(posedge clk) begin
-        #(period) step_clk_prev = step_clk; // a period/2 delay to make sure that _clk and _clk_prev are different and it can be used to detect rising edge
+        #(period) step_clk_prev = step_clk; // these 3 _prev variables are used to detect the rising edge of step_clk, rw_clk and inner_clk
         rw_clk_prev = rw_clk;
 		inner_clk_prev = inner_clk;
     end
@@ -104,7 +104,6 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
 				end
 				
                 if (steps_count < max_steps) begin
-				
                     if(read_write_count == 0 && rw_flag == 1 && clk == 1'b0) begin
 						address_reg <= seed_count;
 						write_enable_reg <= 1'b0;						
@@ -142,8 +141,7 @@ module bram_random_walk #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 3
                         data_out_reg = curr_counter; // write the counter value to BRAM
 					end else if (read_write_count == 8 && inner_flag == 0 && clk == 1'b0) begin
 						oper_flag = 1'b0;
-					end 
-					
+					end 	
                 end
             end
 			read_write_count = read_write_count + 1;
