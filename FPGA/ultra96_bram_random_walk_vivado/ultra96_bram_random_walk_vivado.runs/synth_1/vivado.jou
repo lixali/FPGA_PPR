@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2020.1 (64-bit)
+# SW Build 2902540 on Wed May 27 19:54:49 MDT 2020
+# IP Build 2902112 on Wed May 27 22:43:36 MDT 2020
+# Start of session at: Sat Oct 10 13:46:59 2020
+# Process ID: 11328
+# Current directory: C:/Users/Lixiang/zcu102_bram4/zcu102_bram4.runs/synth_1
+# Command line: vivado.exe -log bram_random_walk.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source bram_random_walk.tcl
+# Log file: C:/Users/Lixiang/zcu102_bram4/zcu102_bram4.runs/synth_1/bram_random_walk.vds
+# Journal file: C:/Users/Lixiang/zcu102_bram4/zcu102_bram4.runs/synth_1\vivado.jou
+#-----------------------------------------------------------
+source bram_random_walk.tcl -notrace
