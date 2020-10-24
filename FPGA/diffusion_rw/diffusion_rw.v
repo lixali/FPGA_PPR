@@ -4,16 +4,16 @@
 module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, nei_table_offset = 10, node_num = 10, node_offset = 0, max_steps = 7) ( 
     input conflict,
     input clk, 
-	input [DATA_WIDTH-1:0] data_in_s,
-	input [DATA_WIDTH-1:0] data_in_g,
+    input [DATA_WIDTH-1:0] data_in_s,
+    input [DATA_WIDTH-1:0] data_in_g,
     input [DATA_WIDTH-1:0] l_step,
     input rdy,
 
     output [DATA_WIDTH-1:0] data_out_s, // there is no data_out_g because this verilog module only read from BRAM_subgraph, never write into it; PS write the subgraph into BRAM_subgraph
-	output [ADDR_WIDTH-1:0] address_g, 
-	output [ADDR_WIDTH-1:0] address_s, 
-	output write_enable_g,
-	output write_enable_s,
+    output [ADDR_WIDTH-1:0] address_g, 
+    output [ADDR_WIDTH-1:0] address_s, 
+    output write_enable_g,
+    output write_enable_s,
     output finished //
     );
     
@@ -24,16 +24,16 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
     reg [ADDR_WIDTH-1:0] address_reg_s, address_reg_g, first_neighbour_address, last_neighbour_address, nei_addr_now;
     reg write_enable_reg_s, write_enable_reg_g;
 
-	assign address_s = (rdy == 1'b1)?  address_reg_s : {(ADDR_WIDTH){1'bz}};
-	assign address_g = (rdy == 1'b1)?  address_reg_g : {(ADDR_WIDTH){1'bz}};
-	assign data_out_s = (rdy == 1'b1)? data_out_reg_s: {(DATA_WIDTH){1'bz}};
-	assign write_enable_s = (rdy == 1'b1)? write_enable_reg_s: {1'bz};
-	assign write_enable_g = (rdy == 1'b1)? write_enable_reg_g: {1'bz};
+    assign address_s = (rdy == 1'b1)?  address_reg_s : {(ADDR_WIDTH){1'bz}};
+    assign address_g = (rdy == 1'b1)?  address_reg_g : {(ADDR_WIDTH){1'bz}};
+    assign data_out_s = (rdy == 1'b1)? data_out_reg_s: {(DATA_WIDTH){1'bz}};
+    assign write_enable_s = (rdy == 1'b1)? write_enable_reg_s: {1'bz};
+    assign write_enable_g = (rdy == 1'b1)? write_enable_reg_g: {1'bz};
     assign finished = (finished_flag == 1'b1)? 1'b1: {1'b0};
     
     
     always @(negedge clk) begin // start at the negative edge		
-			
+            
         if (l_step < max_steps && rdy == 1'b1 && conflict == 1'b0) begin
             if(read_prev_score == 1'b1 && clk == 1'b0) begin //
                 if (node_count == 0) begin
@@ -97,6 +97,6 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
             end 	
         end
 
-	end
+    end
     
 endmodule
