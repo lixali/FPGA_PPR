@@ -1,3 +1,4 @@
+
 // _g is graph; _s is score
 // node_offset is the number of nodes stored in the prior BRAM_score_table, it will be increasing 0, 10, 20 , 30, etc.
 module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, nei_table_offset = 10, node_num = 10, node_offset = 0, max_steps = 7) ( 
