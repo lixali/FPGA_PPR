@@ -1,6 +1,6 @@
 module scheduler_quad #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr = 0, upper_addr = 4) ( 
     input clk,
-    input [DATA_WIDTH-1:0] data_mem,
+    input [DATA_WIDTH-1:0] data_mem, // input from BRAM memory
 
     input [ADDR_WIDTH-1:0] addrA,
     input [ADDR_WIDTH-1:0] addrB,
@@ -12,6 +12,7 @@ module scheduler_quad #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
     input write_enB,
 
     output [DATA_WIDTH-1:0] data, // goes out to bram memory
+    output [ADDR_WIDTH-1:0] addr, // addr goes out to bram memory
     output [DATA_WIDTH-1:0] dataMA, // goes out to verilog M module
     output [DATA_WIDTH-1:0] dataMB,
 
@@ -25,15 +26,17 @@ module scheduler_quad #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
     );
 
 
-    wire conflict_AB, conflict_AC, conflict_AD, conflict_BC, conflict_BD, conflict_CD;
-    reg selA = 1'b0, selB = 1'b0, selC = 1'b0, selD = 1'b0;
+    wire conflict_AB;
+    reg selA = 1'b0, selB = 1'b0;
 
 	assign dataMA = (selA == 1'b1)? data_mem: {(DATA_WIDTH){1'bz}};
     assign data = (selA == 1'b1)? dataA: {(DATA_WIDTH){1'bz}};
+    assign addr = (selA == 1'b1)? addrA-lower_addr: {(ADDR_WIDTH){1'bz}};
     assign write_mem_enA = (selA == 1'b1)? write_enA: {1'bz};
 
 	assign dataMB = (selB == 1'b1)? data_mem: {(DATA_WIDTH){1'bz}};
     assign data = (selB == 1'b1)? dataB: {(DATA_WIDTH){1'bz}};
+    assign addr = (selB == 1'b1)? addrB-lower_addr: {(ADDR_WIDTH){1'bz}};
     assign write_mem_enB = (selB == 1'b1)? write_enB: {1'bz};
 
 
@@ -65,8 +68,6 @@ module scheduler_quad #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
                     selD = 1'b0;
 
                 end
-
-
             end 
 
         end else begin // if not even one addr is within address boundary, no one is selected
