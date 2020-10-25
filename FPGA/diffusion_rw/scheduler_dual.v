@@ -59,13 +59,9 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 				if (lower_addr <= addrA <= upper_addr) begin
 					selA = 1'b1;
 					selB = 1'b0;
-					selC = 1'b0;
-					selD = 1'b0;
 				end else if (lower_addr <= addrB <= upper_addr) begin
 					selA = 1'b0;
 					selB = 1'b1;
-					selC = 1'b0;
-					selD = 1'b0;
 
 				end
 			end 
@@ -73,8 +69,6 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 		end else begin // if not even one addr is within address boundary, no one is selected
 			selA = 1'b0;
 			selB = 1'b0;
-			selC = 1'b0;
-			selD = 1'b0;
 		end 
 
 		conflict_b <= conflict_AB;
