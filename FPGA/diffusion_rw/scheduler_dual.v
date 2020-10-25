@@ -47,19 +47,19 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 		.conflict(conflict_AB)
 	);
 
-
+	
 	//reg first_second_half_reg;    
-	always @(negedge clk) begin
+	always @(*) begin
 
-		if (lower_addr <= addrA <= upper_addr || lower_addr <= addrB <= upper_addr) begin
+		if ((addrA >= lower_addr && addrA <= upper_addr) || (addrB >= lower_addr && addrB <= upper_addr)) begin
 
 			// there is conflict, priority M1 > M2 > M3 > M4
 			if (conflict_AB == 1'b1) begin
 				
-				if (lower_addr <= addrA <= upper_addr) begin
+				if (addrA >= lower_addr && addrA <= upper_addr) begin
 					selA = 1'b1;
 					selB = 1'b0;
-				end else if (lower_addr <= addrB <= upper_addr) begin
+				end else if (addrB >= lower_addr && addrB <= upper_addr) begin
 					selA = 1'b0;
 					selB = 1'b1;
 
