@@ -1,8 +1,8 @@
-module sync_control_dual #(parameter DATA_WIDTH = 32) ( 
+module sync_control_dual #(parameter DATA_WIDTH = 32, max_steps = 7) ( 
 	input clk,
 	input finished1,
 	input finished2,
-	input rst, // a reset flag that reset all operations, should set to be 0 at all time
+	input rst, // a reset flag that reset all operations; after lap > max_steps, rst needs to be set high by PS to reset everything
 	
 	output rdy1,
 	output rdy2, //
@@ -17,10 +17,11 @@ module sync_control_dual #(parameter DATA_WIDTH = 32) (
 	always @(posedge clk) begin // need to double check if it should be posedge or negedge
 		if (rst == 1'b0 && finished1 == 1'b1 && finished2 == 1'b1) begin
 			l_step_reg = l_step_reg + 1;
-		end else begin
-			l_step_reg = 0;
 		end
 
+		//if (l_step_reg == max_steps) begin
+		//	l_step_reg = 0;
+		//end
 	end
 
 
