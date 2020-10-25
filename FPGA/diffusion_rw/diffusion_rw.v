@@ -20,7 +20,7 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
     integer node_count = 0;
     reg read_prev_score = 1'b1, finished_flag = 1'b0;
     reg read_nei_addr, read_nei, read_nei_score, write_nei_score;
-    reg [DATA_WIDTH-1:0] curr_addr_s = 0, data_out_reg_s, degree, node_prev_score, node, nei_node, nei_node_score;
+    reg [DATA_WIDTH-1:0] curr_addr_s = 0, data_out_reg_s, degree, node_prev_score, node=1, nei_node, nei_node_score;
     reg [ADDR_WIDTH-1:0] address_reg_s, address_reg_g, first_neighbour_address, last_neighbour_address, nei_addr_now;
     reg write_enable_reg_s, write_enable_reg_g;
 
@@ -89,7 +89,9 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
                     node_count = node_count + 1;  
                     read_prev_score = 1'b1;
                     read_nei_score = 1'b0; // this line can be removed, it is redundant
-                end else if(nei_addr_now == last_neighbour_address &&  node_count == node_num) begin
+                end
+				
+				if(nei_addr_now == last_neighbour_address &&  node_count == node_num) begin
                     node_count = 0;
                     node = 1; // node starts with 1
                     finished_flag = 1'b1;
