@@ -17,8 +17,7 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 	output [DATA_WIDTH-1:0] dataMB,
 
 
-	output write_mem_enA,
-	output write_mem_enB,
+	output write_mem_en,
 
 
 	output reg conflict_b //
@@ -32,12 +31,12 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 	assign dataMA = (selA == 1'b1)? data_mem: {(DATA_WIDTH){1'bz}};
 	assign data = (selA == 1'b1)? dataA: {(DATA_WIDTH){1'bz}};
 	assign addr = (selA == 1'b1)? addrA-lower_addr: {(ADDR_WIDTH){1'bz}};
-	assign write_mem_enA = (selA == 1'b1)? write_enA: {1'bz};
+	assign write_mem_en = (selA == 1'b1)? write_enA: {1'bz};
 
 	assign dataMB = (selB == 1'b1)? data_mem: {(DATA_WIDTH){1'bz}};
 	assign data = (selB == 1'b1)? dataB: {(DATA_WIDTH){1'bz}};
 	assign addr = (selB == 1'b1)? addrB-lower_addr: {(ADDR_WIDTH){1'bz}};
-	assign write_mem_enB = (selB == 1'b1)? write_enB: {1'bz};
+	assign write_mem_en = (selB == 1'b1)? write_enB: {1'bz};
 
 
 	conflict_block #(.ADDR_WIDTH(13), .lower_addr(lower_addr), .upper_addr(upper_addr)) conflict_ins_AB (
@@ -54,17 +53,15 @@ module scheduler_dual #(parameter ADDR_WIDTH = 13, DATA_WIDTH = 32, lower_addr =
 		if ((addrA >= lower_addr && addrA <= upper_addr) || (addrB >= lower_addr && addrB <= upper_addr)) begin
 
 			// there is conflict, priority M1 > M2 > M3 > M4
-			if (conflict_AB == 1'b1) begin
 				
-				if (addrA >= lower_addr && addrA <= upper_addr) begin
+			if (addrA >= lower_addr && addrA <= upper_addr) begin
 					selA = 1'b1;
 					selB = 1'b0;
-				end else if (addrB >= lower_addr && addrB <= upper_addr) begin
+			end else if (addrB >= lower_addr && addrB <= upper_addr) begin
 					selA = 1'b0;
 					selB = 1'b1;
 
-				end
-			end 
+			end
 
 		end else begin // if not even one addr is within address boundary, no one is selected
 			selA = 1'b0;
