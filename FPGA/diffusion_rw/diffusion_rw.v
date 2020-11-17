@@ -31,11 +31,41 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
     assign write_enable_s = (rdy == 1'b1)? write_enable_reg_s: {1'bz};
     assign write_enable_g = (rdy == 1'b1)? write_enable_reg_g: {1'bz};
     assign finished = (finished_flag == 1'b1)? 1'b1: {1'b0};
-    
-    
+
+	/// divider nov 16 /////////////////////////////
+    wire [31:0] quot, rem;
+    reg [31:0]  a_div, b_div; 
+	wire div_done;	
+	reg div_start = 0, div_running = 1'b0, div_trigger = 1'b0;
+	reg [DATA_WIDTH-1: 0] prop_score;
+	wire err;
+	//streamlined_divider div(quot,rem,div_done,a_div,b_div,div_start,clk);  /// operate at the rising edge of clock
+//	divfunc #(.XLEN (16),.STAGE_LIST(10)) div (
+//	    .clk(clk),
+//		.rst(1'b0),		
+//		.a(a_div),
+//		.b(b_div),
+//		.vld(div_start),
+//		.quo(quot),
+//		.rem(rem),
+//        .ack(div_done)			
+//	);
+
+      Divide div (  
+           .clk(clk),   
+           .start(div_start),  
+           .reset(1'b0),  
+           .A(a_div),   
+           .B(b_div),   
+           .D(quot),   
+           .R(rem),   
+           .ok(div_done),  
+           .err(err)  
+      );  
+	/////////////////////////////////////////////////
     always @(negedge clk) begin // start at the negative edge	
 
-		if (rdy == 1'b1 && conflict == 1'b0) begin
+		if ((rdy == 1'b1 && conflict == 1'b0) || div_trigger == 1'b1 || div_running == 1'b1 ) begin
 			
 			if (read_prev_score == 1'b1 && clk == 1'b0 && in_state1 == 1) begin
                 read_prev_score = 1'b0; 
@@ -47,16 +77,27 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
 				write_enable_reg_s = 1'b0; // always turn off write enable
 			end else if (read_nei_addr == 1'b1 && clk == 1'b0) begin
                 read_nei_addr = 1'b0;
-                read_nei = 1'b1;				
+                div_trigger = 1'b1;				
                 degree = last_neighbour_address-first_neighbour_address+1;
-			
+			end else if (div_trigger == 1'b1 && clk == 1'b0) begin
+				div_trigger = 0'b0;
+				div_running = 1'b1;
+			end else if (div_running == 1'b1 && clk == 1'b0) begin
+				if (div_done == 1'b1) begin
+					div_running = 1'b0;
+					read_nei = 1'b1;
+					prop_score = {16'b0, quot};
+				end else begin
+					div_running = 1'b1;
+					read_nei = 1'b0;
+				end
 			end else if (read_nei == 1'b1 && clk == 1'b0) begin
                 read_nei = 1'b0;
                 read_nei_score = 1'b1;			
 			end else if (read_nei_score == 1'b1 && clk == 1'b0) begin
                 read_nei_score = 1'b0;
                 write_nei_score = 1'b1;			
-                nei_node_score = nei_node_score + node_prev_score/degree; // s2 = s2+s1/degree; s1 is node's previous score, s2 is neighbour node's latest score
+                nei_node_score = nei_node_score + prop_score; // s2 = s2+s1/degree; s1 is node's previous score, s2 is neighbour node's latest score
 			end else if (write_nei_score == 1'b1 && clk == 1'b0) begin
                 write_nei_score = 1'b0;
                 if (nei_addr_now < last_neighbour_address) begin
@@ -110,8 +151,13 @@ module diffusion_rw #(parameter period = 10, ADDR_WIDTH = 13, DATA_WIDTH = 32, n
                 write_enable_reg_g = 1'b0;
                 #(period *0.7) last_neighbour_address = data_in_g; // read out current node's last neighbour address 						
                 nei_addr_now = first_neighbour_address;
-
-            end else if (read_nei == 1'b1 && clk == 1'b0) begin
+						
+            end else if (div_trigger == 1'b1 && clk == 1'b0) begin
+				a_div = node_prev_score;
+				b_div = degree;
+				div_start = 1'b1;
+				#(period*0.7) div_start = 1'b0; // a pulse to trigger division, no need to stay high all the time			
+			end else if (div_running == 1'b0 && read_nei == 1'b1 && clk == 1'b0) begin
                 write_enable_reg_g = 1'b0;
                 address_reg_g = nei_addr_now;
 
